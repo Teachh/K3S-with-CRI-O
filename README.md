@@ -1,6 +1,7 @@
 # K3S-with-CRI-O
 
 This repository contains the necessary files to set up K3s with CRI-O on an Ubuntu machine and deploy Sysbox for container isolation.
+Created from this issue: https://github.com/nestybox/sysbox/issues/841
 
 ## Files
 

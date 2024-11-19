@@ -81,6 +81,11 @@ sudo echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /etc/sysctl.conf
 sudo sysctl -p
 
 sudo sed -i "s|::1|#::1|" /etc/hosts
+
+# Add containers ns, in this case allocates 10 PODS
+echo "containers:300000:655360" | sudo tee -a /etc/subuid
+echo "containers:300000:655360" | sudo tee -a /etc/subgid
+
 # Apply changes
 sudo systemctl restart --now crio
 # Restart IP link in case of error with pods

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test
+  namespace: default
+  annotations:
+    io.kubernetes.cri-o.userns-mode: "auto:size=65536" # Tells CRI-O to setup a rootless pod
+spec:
+  runtimeClassName: sysbox-runc
+  containers:
+    - name: container
+      image: ghcr.io/nestybox/ubuntu-bionic-systemd-docker
+      resources:
+        limits:
+          memory: "1Gi"
+          cpu: "1"
+        requests:
+          memory: "512Mi"
+          cpu: "1"
+      command:
+        - /sbin/init

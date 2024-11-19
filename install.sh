@@ -45,11 +45,11 @@ EOF
 
 # Install CRI-O CNI and Configure
 sudo apt install containernetworking-plugins
-sudo sed -i '/network_dir =/s/^# //' /etc/crio/crio.conf
-sudo sed -i 's/# plugin_dirs = \[/plugin_dirs = \[/' /etc/crio/crio.conf
-sudo sed -i '/plugin_dirs = \[/a\      "/usr/lib/cni/",' /etc/crio/crio.conf
-sudo sed -i 's|#       "/opt/cni/bin/",|      "/opt/cni/bin/",|g' /etc/crio/crio.conf
-sudo sed -i '/      "\/opt\/cni\/bin\/",/a\]' /etc/crio/crio.conf
+# sudo sed -i '/network_dir =/s/^# //' /etc/crio/crio.conf
+# sudo sed -i 's/# plugin_dirs = \[/plugin_dirs = \[/' /etc/crio/crio.conf
+# sudo sed -i '/plugin_dirs = \[/a\      "/usr/lib/cni/",' /etc/crio/crio.conf
+# sudo sed -i 's|#       "/opt/cni/bin/",|      "/opt/cni/bin/",|g' /etc/crio/crio.conf
+# sudo sed -i '/      "\/opt\/cni\/bin\/",/a\]' /etc/crio/crio.conf
 
 # https://github.com/cri-o/cri-o/blob/main/contrib/cni/README.md#configuration-directory
 sudo rm -rf /etc/cni/net.d/100-crio-bridge.conf 
@@ -61,12 +61,15 @@ sudo sed -i 's|10.85.0.0/16|10.224.0.0/16|' /etc/cni/net.d/11-crio-ipv4-bridge.c
 sudo apt install cri-tools
 
 # Configure CRI-O to use default kubelet cgroup
-sudo sed -i '/\[crio.runtime\]/a\conmon_cgroup = "pod"' /etc/crio/crio.conf
-sudo sed -i '/conmon_cgroup = "pod"/a\cgroup_manager = "cgroupfs"' /etc/crio/crio.conf
-sudo sed -i '/cgroup_manager = "cgroupfs"/a\registries = \[' /etc/crio/crio.conf
-sudo sed -i '/^registries = \[/a\  "quay.io",' /etc/crio/crio.conf
-sudo sed -i '/^  "quay.io",/a\  "docker.io"' /etc/crio/crio.conf
-sudo sed -i '/^  "docker.io"/a\\]' /etc/crio/crio.conf
+# sudo sed -i '/\[crio.runtime\]/a\conmon_cgroup = "pod"' /etc/crio/crio.conf
+# sudo sed -i '/conmon_cgroup = "pod"/a\cgroup_manager = "cgroupfs"' /etc/crio/crio.conf
+# sudo sed -i '/cgroup_manager = "cgroupfs"/a\registries = \[' /etc/crio/crio.conf
+# sudo sed -i '/^registries = \[/a\  "quay.io",' /etc/crio/crio.conf
+# sudo sed -i '/^  "quay.io",/a\  "docker.io"' /etc/crio/crio.conf
+# sudo sed -i '/^  "docker.io"/a\\]' /etc/crio/crio.conf
+
+mv /etc/crio/crio.conf /etc/crio/crio.conf_backup
+cp crio.conf /etc/crio/crio.conf
 
 # Disable SWAP
 free -h

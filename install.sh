@@ -100,3 +100,6 @@ export K3S_KUBECONFIG_MODE="644"
 export INSTALL_K3S_EXEC=" --container-runtime-endpoint /var/run/crio/crio.sock --disable=traefik"
 export INSTALL_K3S_VERSION=v1.29.0+k3s1
 curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=$INSTALL_K3S_VERSION sh -
+
+# Install sysbox
+kubectl apply -f sysbox.yaml

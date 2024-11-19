@@ -75,7 +75,8 @@ cp crio.conf /etc/crio/crio.conf
 free -h
 swapoff -a
 swapoff -a
-sed -i.bak -r 's/(.+ swap .+)/#\1/' /etc/fstab
+# sed -i.bak -r 's/(.+ swap .+)/#\1/' /etc/fstab
+sed -i.bak -r 's/(.*swap.*)/#\1/' /etc/fstab
 free -h
 
 # IPv6 is disabled system-wide

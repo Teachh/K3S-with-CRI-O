@@ -1,0 +1,12 @@
+- name: Uninstall crio-o and it dependencies
+  ansible.builtin.apt:
+    name:
+      - cri-o
+      - cri-o-runc
+      - containernetworking-plugins
+    state: absent
+
+- name: Clean up dependencies
+  become: true
+  ansible.builtin.apt:
+    autoremove: "yes"

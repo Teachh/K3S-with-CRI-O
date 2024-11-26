@@ -1,0 +1,56 @@
+---
+- name: Add the libcontainers stable repository
+  ansible.builtin.shell: |
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/ /" \
+    | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+  ansible-lint: skip
+
+- name: Add the cri-o repository
+  ansible.builtin.shell: |
+    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/{{ crio_install_os }}/ /"\
+    | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_install_crio_version }}.list
+  ansible-lint: skip
+
+- name: Add the Release key for cri-o
+  ansible.builtin.shell: |
+    curl -fsSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/Release.key \
+    | sudo tee /etc/apt/trusted.gpg.d/kubic.asc
+  ansible-lint: skip
+
+- name: Add the Release key for libcontainers stable
+  ansible.builtin.apt_key:
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/Release.key"
+    state: present
+
+- name: Update apt packages
+  ansible.builtin.apt:
+    upgrade: "yes"
+    update_cache: "yes"
+    cache_valid_time: 86400
+
+- name: Install cri-o, cri-o-runc and containernetworking-plugins
+  ansible.builtin.apt:
+    name:
+      - cri-o
+      - cri-o-runc
+      - containernetworking-plugins
+    state: present
+
+- name: Start and enable crio service
+  ansible.builtin.systemd:
+    name: crio
+    enabled: true
+    state: started
+
+- name: Install cri-tools
+  ansible.builtin.apt:
+    name: cri-tools
+    state: present
+
+- name: Install SELinux utilities and policy
+  ansible.builtin.apt:
+    name:
+      - selinux-utils
+      - selinux-policy-default
+    state: present
+    default_release: "{{ crio_install_ansible_distribution_release }}"

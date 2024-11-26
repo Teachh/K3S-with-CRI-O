@@ -1,0 +1,39 @@
+- name: Use containerd instead of CRI-O for K3S
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/systemd/system/k3s-agent.service
+    block: |
+      '    --container-runtime-endpoint' \
+      '    /var/run/crio/crio.sock' \
+    state: absent
+
+- name: Restart K3S Agent service
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: restarted
+    enabled: "yes"
+
+- name: Get hostname of the machine
+  ansible.builtin.command: hostname
+  register: hostname_result
+  changed_when: false
+
+- name: Store hostname in a custom variable
+  ansible.builtin.set_fact:
+    my_hostname: "{{ hostname_result.stdout }}"
+
+- name: Remove label node for sysbox install
+  ansible.builtin.shell: |
+    kubectl label nodes {{ my_hostname }} sysbox-install-
+  args:
+    executable: /bin/bash
+  delegate_to: localhost
+  changed_when: false
+
+- name: Remove Sysbox with the yaml
+  ansible.builtin.shell: |
+    kubectl delete -f {{ playbook_dir }}/roles/sysbox/uninstall/files/sysbox.yaml
+  args:
+    executable: /bin/bash
+  delegate_to: localhost
+  changed_when: false

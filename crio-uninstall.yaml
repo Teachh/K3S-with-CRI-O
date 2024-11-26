@@ -1,0 +1,36 @@
+- name: Uninstall Sysbox
+  hosts: k3s-crio
+  pre_tasks:
+    - name: Get hostname of the machine
+      ansible.builtin.command: hostname
+      register: hostname_result
+      changed_when: false
+
+    - name: Store hostname in a custom variable
+      ansible.builtin.set_fact:
+        my_hostname: "{{ hostname_result.stdout }}"
+
+    - name: Check if the node has CRI-O as container-runtime
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubectl get nodes -o wide | grep {{ my_hostname }} | awk '{print $11}' | grep cri-o
+      args:
+        executable: /bin/bash
+      delegate_to: localhost
+      register: node_runtime
+      changed_when: false
+      ignore_errors: true
+
+    - name: Node is not useing CRI-O
+      ansible.builtin.fail:
+        msg: "Node runtime is not using CRI-O. Exiting playbook."
+      when: node_runtime.stdout | length == 0
+
+  roles:
+    - role: sysbox_uninstall
+
+- name: Uninstall CRI-O
+  hosts: k3s-crio
+  roles:
+    - role: crio_uninstall
+      become: true

@@ -1,0 +1,3 @@
+---
+crio_install_os: xUbuntu_22.04
+crio_install_crio_version: 1.24

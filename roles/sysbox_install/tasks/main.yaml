@@ -1,0 +1,49 @@
+# - name: Reinstall K3S with CRI-O
+#   shell: |
+#     export K3S_KUBECONFIG_MODE="{{ sysbox_install_k3s_kubeconfig_mode }}"
+#     export INSTALL_K3S_EXEC="{{ sysbox_install_k3s_install_exec }}"
+#     export INSTALL_K3S_VERSION="{{ sysbox_install_k3s_version }}"
+#     curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=$INSTALL_K3S_VERSION sh -
+#   args:
+#     executable: /bin/bash
+
+- name: Modify K3S Agent startup to use CRI-O
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/systemd/system/k3s-agent.service
+    block: |
+      '    --container-runtime-endpoint' \
+      '    /var/run/crio/crio.sock' \
+    create: "yes"
+    mode: '0644'
+
+- name: Restart K3S Agent service
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: restarted
+    enabled: "yes"
+
+- name: Fetch hostname
+  ansible.builtin.command: hostname
+  register: hostname_result
+  changed_when: false
+
+- name: Store hostname in a custom variable
+  ansible.builtin.set_fact:
+    my_hostname: "{{ hostname_result.stdout }}"
+
+- name: Label node for sysbox install
+  ansible.builtin.shell: |
+    kubectl label nodes {{ my_hostname }} sysbox-install=yes
+  args:
+    executable: /bin/bash
+  delegate_to: localhost
+  changed_when: false
+
+- name: Install Sysbox applying the changes of the yaml
+  ansible.builtin.shell: |
+    kubectl apply -f {{ playbook_dir }}/roles/sysbox/install/files/sysbox.yaml
+  args:
+    executable: /bin/bash
+  delegate_to: localhost
+  changed_when: false

@@ -1,0 +1,56 @@
+- name: Install CRI-O and its dependencies
+  hosts: k3s-crio
+  pre_tasks:
+    - name: Check if k3s-agent service exists
+      ansible.builtin.systemd:
+        name: k3s-agent
+        state: started
+      register: k3s_agent_service_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Ensure k3s-agent service exists
+      ansible.builtin.fail:
+        msg: "The k3s-agent service does not exist. Exiting playbook."
+      when: k3s_agent_service_check.failed
+
+    - name: Stop all plays if k3s-agent service is missing
+      ansible.builtin.meta: end_play
+      when: k3s_agent_service_check.failed
+
+    - name: Ensure the distribution is Ubuntu 23.04
+      ansible.builtin.fail:
+        msg: "This playbook is intended only for Ubuntu 23.04."
+      when: ansible_distribution != "Ubuntu" or ansible_distribution_version != "23.04"
+
+    - name: Update and upgrade apt packages
+      become: true
+      ansible.builtin.apt:
+        upgrade: "yes"
+        update_cache: "yes"
+        cache_valid_time: 86400
+
+  roles:
+    - role: crio_install
+      become: true
+
+- name: Configure CRI-O
+  hosts: k3s-crio
+  pre_tasks:
+    - name: Check if CRI-O configuration file exists
+      ansible.builtin.stat:
+        path: "/etc/sysctl.d/k8s.conf"
+      register: file_status
+
+    - name: Fail if CRI-O configuration file exists
+      ansible.builtin.fail:
+        msg: "CRI-O configuration file exists, skipping configuration."
+      when: file_status.stat.exists
+  roles:
+    - role: crio_configure
+      become: true
+
+- name: Reinstall K3S running CRI-O and install Sysbox
+  hosts: k3s-crio
+  roles:
+    - role: sysbox_install

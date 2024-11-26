@@ -44,4 +44,4 @@ Run the playbooks using the following commands:
 
 ### Install CRI-O and Sysbox
 ```bash
-ansible-playbook  crio-install.yaml
+ansible-playbook crio-install.yaml

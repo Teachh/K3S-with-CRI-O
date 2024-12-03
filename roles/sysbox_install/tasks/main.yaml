@@ -7,15 +7,16 @@
 #   args:
 #     executable: /bin/bash
 
-- name: Modify K3S Agent startup to use CRI-O
-  become: true
-  ansible.builtin.blockinfile:
-    path: /etc/systemd/system/k3s-agent.service
-    block: |
-      '    --container-runtime-endpoint' \
-      '    /var/run/crio/crio.sock' \
-    create: "yes"
+- name: Copy k3s.service file to the server
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/k3s-agent.service"
+    dest: /etc/systemd/system/k3s-agent.service
     mode: '0644'
+
+- name: Ensure the service is reloaded after changes
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: reloaded
 
 - name: Restart K3S Agent service
   ansible.builtin.systemd:
@@ -40,7 +41,36 @@
   delegate_to: localhost
   changed_when: false
 
-- name: Install Sysbox applying the changes of the yaml
+- name: Update apt sources to old releases
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list
+    regexp: 'http://es.archive.ubuntu.com/ubuntu'
+    line: 'http://old-releases.ubuntu.com/ubuntu'
+    state: present
+  notify:
+    - Update apt cache
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: "yes"
+
+- name: Install jq
+  ansible.builtin.apt:
+    name: jq
+    state: present
+
+- name: Download Sysbox package
+  ansible.builtin.get_url:
+    url: https://downloads.nestybox.com/sysbox/releases/v0.6.5/sysbox-ce_0.6.5-0.linux_amd64.deb
+    dest: /tmp/sysbox-ce_0.6.5-0.linux_amd64.deb
+    mode: '0770'
+
+- name: Install Sysbox package
+  ansible.builtin.apt:
+    deb: /tmp/sysbox-ce_0.6.5-0.linux_amd64.deb
+    state: present
+
+- name: Install Sysbox Daemon applying the changes of the yaml
   ansible.builtin.shell: |
     kubectl apply -f {{ playbook_dir }}/roles/sysbox/install/files/sysbox.yaml
   args:

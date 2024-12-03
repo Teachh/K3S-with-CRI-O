@@ -14,7 +14,7 @@
             { "dst": "0.0.0.0/0" }
         ],
         "ranges": [
-            [{ "subnet": "10.224.0.0/16" }]
+            [{ "subnet": "{{ actual_cidr.stdout }}" }]
         ]
       }
     }

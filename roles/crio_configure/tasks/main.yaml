@@ -10,9 +10,15 @@
     state: absent
     path: /etc/cni/net.d/100-crio-bridge.conf
 
+# Get previous cni0 IP and change the range!
+- name: Get actual network CIDR
+  ansible.builtin.command: ip a | grep -m1 10.42. | awk '{print $2}' |sed -r 's|/32+|/24|g'
+  register: actual_cidr
+  changed_when: false
+
 - name: Setup new cri-o network configuration
-  ansible.builtin.copy:
-    src: "{{ role_path }}/files/11-crio-ipv4-bridge.conflist"
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/11-crio-ipv4-bridge.conflist.j2"
     dest: /etc/cni/net.d/11-crio-ipv4-bridge.conflist
     mode: '0644'
 
@@ -26,19 +32,19 @@
     dest: /etc/crio/crio.conf
     mode: '0644'
 
-- name: Append to /etc/subuid containers
-  ansible.builtin.lineinfile:
-    path: /etc/subuid
-    line: "containers:300000:655360"
-    create: "yes"
-    mode: '0644'
+# - name: Append to /etc/subuid containers
+#   ansible.builtin.lineinfile:
+#     path: /etc/subuid
+#     line: "containers:300000:655360"
+#     create: "yes"
+#     mode: '0644'
 
-- name: Append to /etc/subgid containers
-  ansible.builtin.lineinfile:
-    path: /etc/subgid
-    line: "containers:300000:655360"
-    create: "yes"
-    mode: '0644'
+# - name: Append to /etc/subgid containers
+#   ansible.builtin.lineinfile:
+#     path: /etc/subgid
+#     line: "containers:300000:655360"
+#     create: "yes"
+#     mode: '0644'
 
 - name: Disable swap
   ansible.builtin.command: swapoff -a

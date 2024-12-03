@@ -1,26 +1,36 @@
 ---
 - name: Add the libcontainers stable repository
   ansible.builtin.shell: |
-    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/ /" \
-    | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-  ansible-lint: skip
+    set -o pipefail
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/ /" |
+    sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+  args:
+    executable: /bin/bash
+  changed_when: false
+
 
 - name: Add the cri-o repository
   ansible.builtin.shell: |
-    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/{{ crio_install_os }}/ /"\
-    | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_install_crio_version }}.list
-  ansible-lint: skip
+    set -o pipefail
+    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/{{ crio_install_os }}/ /"\ |
+    sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_install_crio_version }}.list
+  args:
+    executable: /bin/bash
+  changed_when: false
 
-- name: Add the Release key for cri-o
-  ansible.builtin.shell: |
-    curl -fsSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/Release.key \
-    | sudo tee /etc/apt/trusted.gpg.d/kubic.asc
-  ansible-lint: skip
+# - name: Add the Release key for cri-o
+#   ansible.builtin.shell: |
+#     set -o pipefail
+#     curl -fsSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_install_crio_version }}/Release.key \ |
+#     sudo tee /etc/apt/trusted.gpg.d/kubic.asc
+#   args:
+#     executable: /bin/bash
+#   changed_when: false
 
-- name: Add the Release key for libcontainers stable
-  ansible.builtin.apt_key:
-    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/Release.key"
-    state: present
+# - name: Add the Release key for libcontainers stable
+#   ansible.builtin.apt_key:
+#     url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_install_os }}/Release.key"
+#     state: present
 
 - name: Update apt packages
   ansible.builtin.apt:
@@ -53,4 +63,3 @@
       - selinux-utils
       - selinux-policy-default
     state: present
-    default_release: "{{ crio_install_ansible_distribution_release }}"

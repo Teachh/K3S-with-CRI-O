@@ -32,19 +32,19 @@
     dest: /etc/crio/crio.conf
     mode: '0644'
 
-# - name: Append to /etc/subuid containers
-#   ansible.builtin.lineinfile:
-#     path: /etc/subuid
-#     line: "containers:300000:655360"
-#     create: "yes"
-#     mode: '0644'
+- name: Append to /etc/subuid containers
+  ansible.builtin.lineinfile:
+    path: /etc/subuid
+    line: "containers:231072:6553600"
+    create: "yes"
+    mode: '0644'
 
-# - name: Append to /etc/subgid containers
-#   ansible.builtin.lineinfile:
-#     path: /etc/subgid
-#     line: "containers:300000:655360"
-#     create: "yes"
-#     mode: '0644'
+- name: Append to /etc/subgid containers
+  ansible.builtin.lineinfile:
+    path: /etc/subgid
+    line: "containers:231072:6553600"
+    create: "yes"
+    mode: '0644'
 
 - name: Disable swap
   ansible.builtin.command: swapoff -a
